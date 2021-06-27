@@ -19,6 +19,7 @@ describe('callAll', () => {
       0,
       false,
       '',
+      // @ts-ignore
       'asdf',
       callback
     );

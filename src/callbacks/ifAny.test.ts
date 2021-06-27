@@ -1,76 +1,88 @@
-import { ifAll } from './ifAll';
+import { ifAny } from './ifAny';
 
 const truthyCondition = () => true;
 const falsyCondition = () => false;
 
-describe('ifAll', () => {
-  it('should not invoke callback if no conditions are passed', () => {
+describe('ifAny', () => {
+  it('should not invoke callbacks if no conditions are passed', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll()(callback);
+    const systemUnderTest = ifAny()(callback);
     systemUnderTest();
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it('should not invoke callback if only non-function conditions are passed', () => {
+  it('should not invoke callbacks if only non-function conditions are passed', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll(false, null, 0, '', undefined)(callback);
+    const systemUnderTest = ifAny(false, null, 0, '', undefined)(callback);
     systemUnderTest();
     expect(callback).not.toHaveBeenCalled();
   });
 
   it('should ignore non-function conditions and callbacks without exploding', () => {
-    const systemUnderTest = ifAll(
+    const systemUnderTest = ifAny(
       false,
       null,
       0,
       '',
       undefined,
+      // @ts-ignore
       'asdf',
       truthyCondition
-    )(false, null, 0, '', undefined, 'asdf');
+    )(
+      false,
+      null,
+      0,
+      '',
+      undefined,
+      // @ts-ignore
+      'asdf'
+    );
     systemUnderTest();
     // Should not throw an exception
     expect(true).toBe(true);
   });
 
-  it('should invoke callback if only a single truthy condition is passed', () => {
+  it('should invoke callbacks if only a single truthy condition is passed', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll(truthyCondition)(callback);
+    const systemUnderTest = ifAny(truthyCondition)(callback);
     systemUnderTest();
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('should invoke callback if multiple truthy conditions are passed', () => {
+  it('should invoke callbacks if multiple truthy conditions are passed', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll(truthyCondition, truthyCondition)(callback);
+    const systemUnderTest = ifAny(truthyCondition, truthyCondition)(callback);
     systemUnderTest();
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('should not invoke callback if only a single falsy condition is passed', () => {
+  it('should not invoke callbacks if only a single falsy condition is passed', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll(falsyCondition)(callback);
+    const systemUnderTest = ifAny(falsyCondition)(callback);
     systemUnderTest();
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it('should not invoke callback if multiple falsy conditions are passed', () => {
+  it('should invoke callbacks if multiple falsy conditions are passed with a truthy condition', () => {
     const callback = jest.fn();
-    const systemUnderTest = ifAll(
-      truthyCondition,
+    const systemUnderTest = ifAny(
       falsyCondition,
+      truthyCondition,
       falsyCondition
     )(callback);
     systemUnderTest();
-    expect(callback).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('should pass arguments to all conditions', () => {
+  it('should pass arguments to all conditions until a truthy condition is met', () => {
     const callback = jest.fn();
-    const condition1 = jest.fn(truthyCondition);
+    const condition1 = jest.fn(falsyCondition);
     const condition2 = jest.fn(truthyCondition);
     const args = ['arg1', 'arg2'];
-    const systemUnderTest = ifAll(condition1, condition2)(callback);
+    const systemUnderTest = ifAny<typeof args>(
+      condition1,
+      condition2
+    )(callback);
     systemUnderTest(...args);
     expect(condition1).toHaveBeenCalledWith(...args);
     expect(condition2).toHaveBeenCalledWith(...args);
@@ -80,7 +92,10 @@ describe('ifAll', () => {
     const callback1 = jest.fn();
     const callback2 = jest.fn();
     const args = ['arg1', 'arg2'];
-    const systemUnderTest = ifAll(truthyCondition)(callback1, callback2);
+    const systemUnderTest = ifAny<typeof args>(truthyCondition)(
+      callback1,
+      callback2
+    );
     systemUnderTest(...args);
     expect(callback1).toHaveBeenCalledWith(...args);
     expect(callback2).toHaveBeenCalledWith(...args);
