@@ -1,3 +1,26 @@
+# naan-utils
+
+`naan-utils` is a collection of utilities for declaratively composing callbacks.
+
+## Examples
+
+```tsx
+<button
+  onClick={onClick}
+  onKeyDown={ifAny(isEnter, isSpace)(onClick, preventDefault)}
+>
+  {/* ... */}
+</button>
+```
+
+```tsx
+<form
+  onKeyDown={ifAll(isCtrl, isZ)(onUndo, preventDefault)}
+>
+  {/* ... */}
+</form>
+```
+
 # TSDX User Guide
 
 Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
